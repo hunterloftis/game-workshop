@@ -18,8 +18,8 @@ export default class Graphics {
         this.coin = new Sprite('assets/gold-coin-10.png', 10)
         this.block = new Sprite('assets/block.png')
         this.rope = new Sprite('assets/rope.png')
-        this.winText = new Text('bold 128px Verdana', '#fff', 'center', 'middle')
-        this.scoreText = new Text('bold 64px verdana', '#fff', 'left', 'top')
+        this.winText = new Text({ font: 'bold 128px verdana', textAlign: 'center', textBaseline: 'middle' })
+        this.scoreText = new Text({ font: 'bold 64px verdana' })
         this.frames = 0
     }
     paint(level, ctx) {
@@ -52,7 +52,7 @@ export default class Graphics {
     }
     paintFinish(ctx, x) {
         ctx.save()
-        Draw.lineStyle(ctx, 4, '#fff', [16, 8])
+        Draw.style(ctx, { lineWidth: 4, strokeStyle: '#fff', dash: [16, 8] })
         Draw.line(ctx, x, 0, x, 1080)
         ctx.restore()
     }
@@ -86,10 +86,10 @@ export default class Graphics {
     paintScore(ctx, state, score) {
         if (state.is('won')) {
             const dy = Math.sin(this.frames / 8.5) * 20
-            this.winText.write(ctx, `You Win! ⭐${score}`, 960, 540 + dy)
+            this.winText.fill(ctx, `You Win! ⭐${score}`, 960, 540 + dy)
         }
         else if (state.is('playing', 'lost')) {
-            this.scoreText.write(ctx, `⭐${score}`, 10, 10)
+            this.scoreText.fill(ctx, `⭐${score}`, 10, 10)
         }
     }
 }

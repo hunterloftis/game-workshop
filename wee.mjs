@@ -1,8 +1,3 @@
-const VIEW_DEFAULTS = {
-    bgStyle: '#000',
-    pixelated: false
-}
-
 export class Loop {
     constructor(updateFn, fps=60) {
         this.updateFn = updateFn
@@ -20,6 +15,11 @@ export class Loop {
 
         this.updateFn(ticks, this.tick, time)
     }
+}
+
+const VIEW_DEFAULTS = {
+    bgStyle: '#000',
+    pixelated: false
 }
 
 export class FixedView {
@@ -156,20 +156,29 @@ export class State {
     }
 }
 
+const TEXT_DEFAULTS = {
+    font: 'bold 64px verdana',
+    textBaseline: 'top',
+    textAlign: 'left',
+    fillStyle: '#fff',
+    strokeStyle: '#000',
+    lineWidth: 2
+}
+
 export class Text {
-    constructor(font='bold 64px verdana', fill='#fff', halign='left', valign='top') {
-        this.font = font
-        this.fill = fill
-        this.halign = halign
-        this.valign = valign        
+    constructor(options) {
+        this.options = Object.assign({}, TEXT_DEFAULTS, options)
     }
-    write(ctx, text, x, y) {
+    fill(ctx, text, x, y) {
         ctx.save()
-        ctx.font = this.font
-        ctx.textBaseline = this.valign
-        ctx.textAlign = this.halign
-        ctx.fillStyle = this.fill
+        Object.assign(ctx, this.options)
         ctx.fillText(text, x, y)
+        ctx.restore()
+    }
+    stroke(ctx, text, x, y) {
+        ctx.save()
+        Object.assign(ctx, this.options)
+        ctx.strokeText(text, x, y)
         ctx.restore()
     }
 }
@@ -181,10 +190,10 @@ export class Draw {
         ctx.lineTo(x2, y2)
         ctx.stroke()
     } 
-    static lineStyle(ctx, width, style, dash=[]) {
-        ctx.lineWidth = width
-        ctx.strokeStyle = style
-        ctx.setLineDash(dash)
+    static style(ctx, options) {
+        const { dash, ...styles} = options
+        Object.assign(ctx, styles)
+        if (dash) ctx.setLineDash(dash)
     }
     static linedCircle(ctx, x, y, r) {
         ctx.beginPath()

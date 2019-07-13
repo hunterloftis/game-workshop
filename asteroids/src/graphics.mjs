@@ -1,16 +1,10 @@
-import Verlet from './verlet.mjs'
+import { Sprite } from '../../wee.mjs'
+import { Draw } from '../../wee.mjs'
+import { Text } from '../../wee.mjs'
 
 const BLUR = 0.5
 const RENDER = true
 const DEBUG = false
-
-function Sprite(dir, ...files) {
-    return files.map(file => {
-        const im = new Image()
-        im.src = `${dir}/${file}`
-        return im
-    })
-}
 
 class Animation {
     constructor(sprite, x, y, scale=1) {
@@ -22,32 +16,23 @@ class Animation {
     }
     next() {
         const n = Math.floor(this.frame / 2)
-        if (n >= this.sprite.length) return { frame: undefined, scale: 1 } 
+        if (n >= this.sprite.frames()) return { frame: undefined, scale: 1 } 
         this.frame++
-        return { frame: this.sprite[n], scale: this.scale }
+        return { frame: this.sprite.image(n), scale: this.scale }
     }
 }
 
 export default class Graphics {
     constructor() {
-        this.bg = Sprite('assets/backgrounds', 'b.png')
-        this.ship = Sprite('assets', 'ship.png')
+        this.bg = new Sprite('assets/backgrounds/b.png')
+        this.ship = new Sprite('assets/ship.png')
         this.asteroids = [
-            Sprite('assets/asteroids', 'asteroid-0-0.png'),
-            Sprite('assets/asteroids', 'asteroid-1-0.png')
+            new Sprite('assets/asteroid-a-2.png', 2),
+            new Sprite('assets/asteroid-b-2.png', 2)
         ]
-        this.chunks = [
-            Sprite('assets/asteroids', 'asteroid-0-1.png'),
-            Sprite('assets/asteroids', 'asteroid-1-1.png')
-        ]
-        this.blueExplosion = Sprite('assets/ship-explosion',
-            '0.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png',
-            '8.png', '9.png', '10.png', '11.png', '12.png', '13.png', '14.png'
-        )
-        this.redExplosion = Sprite('assets/asteroid-explosion',
-            '0.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png',
-            '8.png', '9.png', '10.png', '11.png', '12.png', '13.png', '14.png'
-        )
+        this.blueExplosion = new Sprite('assets/explosion-blue-15.png', 15)
+        this.redExplosion = new Sprite('assets/explosion-red-15.png', 15)
+        this.scoreText = new Text({ font: '48px impact', lineWidth: 3 })
         this.animations = []
     }
     paint(ctx, ship, asteroids, bullets) {
@@ -65,70 +50,59 @@ export default class Graphics {
     }
     paintEntities(ctx, ...entities) {
         ctx.save()
-        ctx.strokeStyle = '#ff0'
-        ctx.lineWidth = 3
-        ctx.beginPath()
-        entities.forEach(e => {
-            ctx.save()
-            ctx.translate(e.x.val, e.y.val)
-            ctx.rotate(e.angle.val)
-            ctx.moveTo(0, 0)
-            ctx.arc(0, 0, e.radius, 0, Math.PI * 2)
-            ctx.restore()
-        })
-        ctx.stroke()
+            ctx.strokeStyle = '#ff0'
+            ctx.lineWidth = 3
+            ctx.beginPath()
+            entities.forEach(e => {
+                ctx.save()
+                ctx.translate(e.x.val, e.y.val)
+                ctx.rotate(e.angle.val)
+                ctx.moveTo(0, 0)
+                ctx.arc(0, 0, e.radius, 0, Math.PI * 2)
+                ctx.restore()
+            })
+            ctx.stroke()
         ctx.restore()
     }
     paintBackground(ctx) {
         ctx.save()
-        ctx.globalAlpha = BLUR
-        ctx.drawImage(this.bg[0], 0, 0)
+            ctx.globalAlpha = BLUR
+            this.bg.blit(ctx, 0, 0)
         ctx.restore()
     }
     paintAsteroids(ctx, asteroids) {
         asteroids.forEach(a => {
-            const im = a.radius >= 70
-                ? this.asteroids[a.id % this.asteroids.length][0]
-                : this.chunks[a.id % this.asteroids.length][0]
+            const im = this.asteroids[a.id % this.asteroids.length]
+            const frame = a.radius >= 70 ? 0 : 1
             ctx.save()
             ctx.translate(a.x.val, a.y.val)
             ctx.rotate(a.angle.val)
-            ctx.drawImage(im, -im.width * 0.5, -im.height * 0.5)
+            im.blit(ctx, 0, 0, 0.5, 0.5, frame)
             ctx.restore()
         })
     }
     paintShip(ctx, ship) {
         if (ship.life <= 0) return
         
-        const im = this.ship[0]
+        const im = this.ship.image(0)
         ctx.save()
-        ctx.translate(ship.x.val, ship.y.val)
-        ctx.rotate(ship.angle.val)
-        ctx.drawImage(im, -im.width * 0.35, -im.height * 0.5)
+            ctx.translate(ship.x.val, ship.y.val)
+            ctx.rotate(ship.angle.val)
+            this.ship.blit(ctx, 0, 0, 0.35, 0.5)
 
-        if (ship.burning) {
-            ctx.beginPath()
-            ctx.lineWidth = 4
-            ctx.lineCap = 'round'
-            ctx.strokeStyle = '#9cf'
-            ctx.moveTo(-im.width * 0.3, -im.height * 0.15)
-            ctx.lineTo(-im.width * 0.35, -im.height * 0.15)
-            ctx.moveTo(-im.width * 0.3, im.height * 0.15)
-            ctx.lineTo(-im.width * 0.35, im.height * 0.15)
-            ctx.stroke()
-        }
+            if (ship.burning) {
+                Draw.style(ctx, { lineWidth: 4, lineCap: 'round', strokeStyle: '#9cf' })
+                Draw.line(ctx, -im.width * 0.3, -im.height * 0.15, -im.width * 0.35, -im.height * 0.15)
+                Draw.line(ctx, -im.width * 0.3, im.height * 0.15, -im.width * 0.35, im.height * 0.15)
+            }
         ctx.restore()
     }
     paintBullets(ctx, bullets) {
         ctx.save()
-        ctx.strokeStyle = '#fff'
-        ctx.lineWidth = 2
-        ctx.beginPath()
-        bullets.forEach(b => {
-            ctx.moveTo(b.x.val, b.y.val)
-            ctx.lineTo(b.x.val - b.x.velocity, b.y.val - b.y.velocity)
-        })
-        ctx.stroke()
+            Draw.style(ctx, { strokeStyle: '#fff', lineWidth: 2 })
+            bullets.forEach(b => {
+                Draw.line(ctx, b.x.val, b.y.val, b.x.val - b.x.velocity, b.y.val - b.y.velocity)
+            })
         ctx.restore()
     }
     paintAnimations(ctx) {
@@ -141,15 +115,8 @@ export default class Graphics {
     }
     paintScore(ctx, score) {
         const text = `⭐ ${score}`
-        ctx.save()
-        ctx.fillStyle = '#fff'
-        ctx.strokeStyle = '#000'
-        ctx.lineWidth = 3
-        ctx.font = '48px Impact'
-        ctx.textBaseline = 'top'
-        ctx.strokeText(text, 10, 10)
-        ctx.fillText(text, 10, 10)
-        ctx.restore()
+        this.scoreText.stroke(ctx, text, 10, 10)
+        this.scoreText.fill(ctx, text, 10, 10)
     }
     explodeShip(x, y) {
         this.animations.push(new Animation(this.blueExplosion, x, y, 1))
