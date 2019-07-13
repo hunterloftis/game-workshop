@@ -30,6 +30,8 @@
 	</div>
 	<script type='module'>
 
+		import { Loop } from '../wee.mjs'
+
 		import { Ship } from './src/entities.mjs'
 		import { Asteroid } from './src/entities.mjs'
 		import Keyboard from './src/keyboard.mjs'
@@ -43,10 +45,9 @@
 		const screen = new Screen(document.getElementById('canvas'))
 		const start = performance.now()
 		const audio = new Audio()
+		const loop = new Loop(update, 60)
 
-		requestAnimationFrame(loop)
-
-		function loop() {
+		function update(ticks, ms) {
 			const seconds = (performance.now() - start) / 1000
 			const difficulty = Math.min(Math.ceil(seconds / 5 + 3), 30)
 
@@ -103,8 +104,6 @@
 			bullets = bullets.filter(b => b.life > 0)
 
 			screen.paint(ship, asteroids, bullets)
-
-			requestAnimationFrame(loop)
 		}
 
 	</script>
