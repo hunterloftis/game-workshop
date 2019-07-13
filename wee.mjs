@@ -79,7 +79,7 @@ export class Sprite {
         }
     }
     blit(ctx, x, y, ax=0, ay=0, frame=0, scale=1) {
-        if (!this.images[frame]) return
+        if (!this.images[frame]) return false
 
         const dx = x - this.width * ax * scale
         const dy = y - this.height * ay * scale
@@ -87,12 +87,42 @@ export class Sprite {
         const dh = this.height * scale
 
         ctx.drawImage(this.images[frame], 0, 0, this.width, this.height, dx, dy, dw, dh)
+        return true
     }
     image(n=0) {
         return this.images[n] || this.blank
     }
     frames() {
         return this.images.length
+    }
+}
+
+export class Animation {
+    constructor(sprite, x, y, ax=0, ay=0, scale=1, fps=30) {
+        this.sprite = sprite
+        this.x = x
+        this.y = y
+        this.ax = ax
+        this.ay = ay
+        this.scale = scale
+        this.fps = fps
+        this.start = performance.now()
+    }
+    state() {
+        const { sprite, x, y, ax, ay, scale } = this
+        const frame = this.frame()
+        return { sprite, x, y, ax, ay, frame, scale }
+    }
+    blit(ctx) {
+        const { sprite, x, y, ax, ay, frame, scale } = this.state()
+        return sprite.blit(ctx, x, y, ax, ay, frame, scale)
+    }
+    frame() {
+        const t = performance.now() - this.start
+        return Math.floor((t / 1000) * this.fps)
+    }
+    complete() {
+        return this.frame() >= this.sprite.frames()
     }
 }
 
@@ -200,6 +230,16 @@ export class Draw {
         ctx.moveTo(x, y)
         ctx.arc(x, y, r, 0, Math.PI * 2)
         ctx.stroke()
+    }
+    static orientedCircle(ctx, x, y, r, angle) {
+        ctx.save()
+            ctx.translate(x, y)
+            ctx.rotate(angle)
+            ctx.beginPath()
+            ctx.moveTo(0, 0)
+            ctx.arc(0, 0, r, 0, Math.PI * 2)
+            ctx.stroke()
+        ctx.restore()
     }
     static parallax(ctx, im, width, height, x) {
         const seam = x % width

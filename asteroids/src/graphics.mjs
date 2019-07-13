@@ -1,26 +1,11 @@
 import { Sprite } from '../../wee.mjs'
 import { Draw } from '../../wee.mjs'
 import { Text } from '../../wee.mjs'
+import { Animation } from '../../wee.mjs'
 
 const BLUR = 0.5
 const RENDER = true
-const DEBUG = false
-
-class Animation {
-    constructor(sprite, x, y, scale=1) {
-        this.sprite = sprite
-        this.x = x
-        this.y = y
-        this.scale = scale
-        this.frame = 0
-    }
-    next() {
-        const n = Math.floor(this.frame / 2)
-        if (n >= this.sprite.frames()) return { frame: undefined, scale: 1 } 
-        this.frame++
-        return { frame: this.sprite.image(n), scale: this.scale }
-    }
-}
+const DEBUG = true
 
 export default class Graphics {
     constructor() {
@@ -50,18 +35,8 @@ export default class Graphics {
     }
     paintEntities(ctx, ...entities) {
         ctx.save()
-            ctx.strokeStyle = '#ff0'
-            ctx.lineWidth = 3
-            ctx.beginPath()
-            entities.forEach(e => {
-                ctx.save()
-                ctx.translate(e.x.val, e.y.val)
-                ctx.rotate(e.angle.val)
-                ctx.moveTo(0, 0)
-                ctx.arc(0, 0, e.radius, 0, Math.PI * 2)
-                ctx.restore()
-            })
-            ctx.stroke()
+            Draw.style(ctx, { strokeStyle: '#ff0', lineWidth: 3 })
+            entities.forEach(e => Draw.orientedCircle(ctx, e.x.val, e.y.val, e.radius, e.angle.val))
         ctx.restore()
     }
     paintBackground(ctx) {
@@ -106,12 +81,7 @@ export default class Graphics {
         ctx.restore()
     }
     paintAnimations(ctx) {
-        this.animations = this.animations.filter(a => {
-            const { frame, scale } = a.next()
-            if (!frame) return false
-            ctx.drawImage(frame, a.x - frame.width * 0.5 * scale, a.y - frame.height * 0.5 * scale, frame.width * scale, frame.height * scale)
-            return true
-        })
+        this.animations = this.animations.filter(a => a.blit(ctx))
     }
     paintScore(ctx, score) {
         const text = `⭐ ${score}`
@@ -119,15 +89,15 @@ export default class Graphics {
         this.scoreText.fill(ctx, text, 10, 10)
     }
     explodeShip(x, y) {
-        this.animations.push(new Animation(this.blueExplosion, x, y, 1))
+        this.animations.push(new Animation(this.blueExplosion, x, y, 0.5, 0.5, 1))
     }
     explodeBullet(x, y) {
-        this.animations.push(new Animation(this.blueExplosion, x, y, 0.5))
+        this.animations.push(new Animation(this.blueExplosion, x, y, 0.5, 0.5, 0.5))
     }
     explodeAsteroid(x, y) {
-        this.animations.push(new Animation(this.redExplosion, x, y, 1))
+        this.animations.push(new Animation(this.redExplosion, x, y, 0.5, 0.5, 1))
     }
     explodeChunk(x, y) {
-        this.animations.push(new Animation(this.redExplosion, x, y, 0.5))
+        this.animations.push(new Animation(this.redExplosion, x, y, 0.5, 0.5, 0.5))
     }
 }
