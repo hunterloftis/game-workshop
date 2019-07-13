@@ -2,11 +2,11 @@ import { Verlet } from '../../wee.mjs'
 import { Rand } from '../../wee.mjs'
 import { Geom } from '../../wee.mjs'
 
-const ROT_DAMP = 0.4
-const DAMP = 0.99
-const SPEED = 0.4
-const TURN = 0.05
-const AST_SPEED = 4
+const MOMENTUM = 0.999
+const ROT_MOMENTUM = 0.9
+const SPEED = 0.7
+const TURN = 0.07
+const AST_SPEED = 3
 const AST_SPIN = 0.03
 
 class Entity {
@@ -18,10 +18,10 @@ class Entity {
         this.angle = new Verlet(0, rotation)
         this.id = Math.floor(Rand.range(0, 99999999999999))
     }
-    integrate(damp = 1, rotDamp = 1) {
-        this.x.integrate(damp)
-        this.y.integrate(damp)
-        this.angle.integrate(rotDamp)
+    integrate(ms, momentum = 1, rotMomentum = 1) {
+        this.x.integrate(momentum, ms)
+        this.y.integrate(momentum, ms)
+        this.angle.integrate(rotMomentum, ms)
     }
     wrap(minX, minY, maxX, maxY) {
         this.x.wrap(minX, maxX)
@@ -60,8 +60,8 @@ class Ship extends Entity {
         this.y.force(y)
         this.burning = true
     }
-    integrate() {
-        super.integrate(DAMP, ROT_DAMP)
+    integrate(ms) {
+        super.integrate(ms, MOMENTUM, ROT_MOMENTUM)
         this.burning = false
     }
     fire() {    // TODO: simplify
@@ -80,9 +80,9 @@ class Bullet extends Entity {
     constructor(x, y, vx, vy) {
         super(1, 100, x, y, vx, vy)
     }
-    integrate() {
+    integrate(ms) {
         if (this.life-- <= 0) return false
-        super.integrate()
+        super.integrate(ms)
         return true
     }
 }
@@ -112,7 +112,7 @@ export class Level {
         }
         
         if (this.ship.life > 0) {
-            this.ship.integrate()
+            this.ship.integrate(ms)
             if (keys.ArrowLeft) this.ship.turnLeft()
             if (keys.ArrowRight) this.ship.turnRight()
             if (keys.ArrowUp) this.ship.accelerate()
@@ -121,7 +121,7 @@ export class Level {
         }
 
         this.bullets.forEach(b => {
-            b.integrate()
+            b.integrate(ms)
             this.asteroids.forEach(a => {
                 if (b.life > 0 && b.hits(a)) {
                     this.event('explodeBullet', b.x.position(), b.y.position())
@@ -132,7 +132,7 @@ export class Level {
         })
 
         this.asteroids.forEach(a => {
-            a.integrate()
+            a.integrate(ms)
             a.wrap(-100, -100, 2020, 1180)
             if (a.life <= 0) {
                 if (a.radius >= 70) {
