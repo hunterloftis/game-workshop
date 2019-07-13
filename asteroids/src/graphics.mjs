@@ -5,7 +5,7 @@ import { Animation } from '../../wee.mjs'
 
 const BLUR = 0.5
 const RENDER = true
-const DEBUG = true
+const DEBUG = false
 
 export default class Graphics {
     constructor() {
@@ -20,13 +20,14 @@ export default class Graphics {
         this.scoreText = new Text({ font: '48px impact', lineWidth: 3 })
         this.animations = []
     }
-    paint(ctx, ship, asteroids, bullets) {
+    paint(ctx, level, events) {
+        const { ship, asteroids, bullets } = level
         this.paintBackground(ctx)
         if (RENDER) {
             this.paintAsteroids(ctx, asteroids)
             this.paintShip(ctx, ship)
             this.paintBullets(ctx, bullets)
-            this.paintAnimations(ctx)
+            this.paintAnimations(ctx, events)
         }
         if (DEBUG) {
             this.paintEntities(ctx, ship, ...asteroids, ...bullets)
@@ -80,24 +81,26 @@ export default class Graphics {
             })
         ctx.restore()
     }
-    paintAnimations(ctx) {
+    paintAnimations(ctx, events) {
+        events.forEach(e => {
+            if ('explodeShip' === e.name) {
+                this.animations.push(new Animation(this.blueExplosion, e.x, e.y, 0.5, 0.5, 1))
+            }
+            else if ('explodeBullet' === e.name) {
+                this.animations.push(new Animation(this.blueExplosion, e.x, e.y, 0.5, 0.5, 0.5))
+            }
+            else if ('explodeAsteroid' === e.name) {
+                this.animations.push(new Animation(this.redExplosion, e.x, e.y, 0.5, 0.5, 1))
+            }
+            else if ('explodeChunk' === e.name) {
+                this.animations.push(new Animation(this.redExplosion, e.x, e.y, 0.5, 0.5, 0.5))
+            }
+        })
         this.animations = this.animations.filter(a => a.blit(ctx))
     }
     paintScore(ctx, score) {
         const text = `⭐ ${score}`
         this.scoreText.stroke(ctx, text, 10, 10)
         this.scoreText.fill(ctx, text, 10, 10)
-    }
-    explodeShip(x, y) {
-        this.animations.push(new Animation(this.blueExplosion, x, y, 0.5, 0.5, 1))
-    }
-    explodeBullet(x, y) {
-        this.animations.push(new Animation(this.blueExplosion, x, y, 0.5, 0.5, 0.5))
-    }
-    explodeAsteroid(x, y) {
-        this.animations.push(new Animation(this.redExplosion, x, y, 0.5, 0.5, 1))
-    }
-    explodeChunk(x, y) {
-        this.animations.push(new Animation(this.redExplosion, x, y, 0.5, 0.5, 0.5))
     }
 }

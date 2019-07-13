@@ -28,4 +28,17 @@ export default class Audio {
         src.connect(this.ctx.destination)
         src.start(0)
     }
+    accompany(events) {
+        events.forEach(e => {
+            if ('explodeAsteroid' === e.name) {
+                this.play(this.largeExplosion)
+            }
+            else if ('explodeChunk' === e.name) {
+                this.play(this.smallExplosion)
+            }
+            else if ('explodeShip' === e.name) {
+                this.play(this.largeExplosion)
+            }
+        })
+    }
 }

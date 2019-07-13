@@ -1,3 +1,5 @@
+const MAX_TICKS = 10
+
 export class Loop {
     constructor(updateFn, fps=60) {
         this.updateFn = updateFn
@@ -10,7 +12,7 @@ export class Loop {
         requestAnimationFrame(this._frame)
 
         const delta = performance.now() - this.time
-        const ticks = Math.min(10, Math.floor(delta / this.tick))
+        const ticks = Math.min(MAX_TICKS, Math.floor(delta / this.tick))
         this.time += this.tick * ticks
 
         this.updateFn(ticks, this.tick, time)

@@ -33,79 +33,26 @@
 		import { Loop } from '../wee.mjs'
 		import { FixedView } from '../wee.mjs'
 
-		import { Ship } from './src/entities.mjs'
-		import { Asteroid } from './src/entities.mjs'
+		import { Level } from './src/game.mjs'
 		import Keyboard from './src/keyboard.mjs'
 		import Graphics from './src/graphics.mjs'
 		import Audio from './src/audio.mjs'
 
-		const ship = new Ship(960, 540)
-		let asteroids = []
-		let bullets = []
 		const kb = new Keyboard({ArrowLeft: false, ArrowRight: false, ArrowUp: false, Shift: false})
 		const view = new FixedView(document.getElementById('canvas'))
 		const graphics = new Graphics()
-		const start = performance.now()
 		const audio = new Audio()
+		let level = new Level()
 		const loop = new Loop(update, 60)
 
 		function update(ticks, ms) {
-			const seconds = (performance.now() - start) / 1000
-			const difficulty = Math.min(Math.ceil(seconds / 5 + 3), 30)
-
-			while (asteroids.length < difficulty) {
-				asteroids.push(new Asteroid(70, 5, Math.random() * 1920, -90))
-			}
-			
-			if (ship.life > 0) {
-				ship.integrate()
-				if (kb.keys.ArrowLeft) ship.turnLeft()
-				if (kb.keys.ArrowRight) ship.turnRight()
-				if (kb.keys.ArrowUp) ship.accelerate()
-				if (kb.keys.Shift) bullets.push(...ship.fire())
-				ship.constrain(0, 0, 1920, 1080)
+			while(ticks--) {
+				level.update(ms, kb.keys)
 			}
 
-			bullets.forEach(b => {
-				b.integrate()
-				asteroids.forEach(a => {
-					if (b.life > 0 && b.hits(a)) {
-						graphics.explodeBullet(b.x.val, b.y.val)
-						b.life = 0
-						a.life--
-					}
-				})
-			})
-
-			asteroids.forEach(a => {
-				a.integrate()
-				a.constrain(-100, -100, 2020, 1180)
-				if (a.life <= 0) {
-					if (a.radius >= 70) {
-						graphics.explodeAsteroid(a.x.val, a.y.val)
-						audio.play(audio.largeExplosion)
-						ship.score += 100
-						for (let i = 0; i < 4; i++) {
-							asteroids.push(new Asteroid(30, 2, a.x.val, a.y.val))
-						}
-					} else {
-						ship.score += 70
-						graphics.explodeChunk(a.x.val, a.y.val)
-						audio.play(audio.smallExplosion)
-					}
-					return
-				}
-				if (ship.life > 0 && a.hits(ship)) {
-					ship.life = 0
-					graphics.explodeShip(ship.x.val, ship.y.val)
-					audio.play(audio.largeExplosion)
-				}
-			})
-
-			asteroids = asteroids.filter(a => a.life > 0)
-			bullets = bullets.filter(b => b.life > 0)
-
-			graphics.paint(view.ctx(), ship, asteroids, bullets)
+			const events = level.flush()
+			audio.accompany(events)
+			graphics.paint(view.ctx(), level, events)
 		}
 
 	</script>
