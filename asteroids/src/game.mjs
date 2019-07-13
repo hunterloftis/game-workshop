@@ -1,5 +1,6 @@
-import Verlet from './verlet.mjs'
+import { Verlet } from '../../wee.mjs'
 import { Rand } from '../../wee.mjs'
+import { Geom } from '../../wee.mjs'
 
 const ROT_DAMP = 0.4
 const DAMP = 0.99
@@ -22,13 +23,13 @@ class Entity {
         this.y.integrate(damp)
         this.angle.integrate(rotDamp)
     }
-    constrain(minX, minY, maxX, maxY) {
-        this.x.constrain(minX, maxX)
-        this.y.constrain(minY, maxY)
+    wrap(minX, minY, maxX, maxY) {
+        this.x.wrap(minX, maxX)
+        this.y.wrap(minY, maxY)
     }
     hits(entity) {
-        const dx = entity.x.val - this.x.val
-        const dy = entity.y.val - this.y.val
+        const dx = entity.x.position() - this.x.position()
+        const dy = entity.y.position() - this.y.position()
         const dist = Math.sqrt(dx * dx + dy * dy)
         return dist < this.radius + entity.radius
     }
@@ -48,14 +49,15 @@ class Ship extends Entity {
         this.score = 0
     }
     turnLeft() {
-        this.angle.val -= TURN
+        this.angle.force(-TURN)
     }
     turnRight() {
-        this.angle.val += TURN
+        this.angle.force(TURN)
     }
     accelerate() {
-        this.x.val += Math.cos(this.angle.val) * SPEED
-        this.y.val += Math.sin(this.angle.val) * SPEED
+        const { x, y } = Geom.project(SPEED, this.angle.position())
+        this.x.force(x)
+        this.y.force(y)
         this.burning = true
     }
     integrate() {
@@ -67,11 +69,11 @@ class Ship extends Entity {
         this.fired++
         if (interval != 0 && interval != 4) return []
         const delta = interval === 0 ? -0.5 : 0.5
-        const angle = this.angle.val + delta
-        const x = this.x.val + Math.cos(angle) * this.radius
-        const y = this.y.val + Math.sin(angle) * this.radius
-        const vx = Math.cos(this.angle.val) * 20
-        const vy = Math.sin(this.angle.val) * 20
+        const angle = this.angle.position() + delta
+        const x = this.x.position() + Math.cos(angle) * this.radius
+        const y = this.y.position() + Math.sin(angle) * this.radius
+        const vx = Math.cos(this.angle.position()) * 20
+        const vy = Math.sin(this.angle.position()) * 20
         return [new Bullet(x, y, vx, vy)]
     }
 }
@@ -117,14 +119,14 @@ export class Level {
             if (keys.ArrowRight) this.ship.turnRight()
             if (keys.ArrowUp) this.ship.accelerate()
             if (keys.Shift) this.bullets.push(...this.ship.fire())
-            this.ship.constrain(0, 0, 1920, 1080)
+            this.ship.wrap(0, 0, 1920, 1080)
         }
 
         this.bullets.forEach(b => {
             b.integrate()
             this.asteroids.forEach(a => {
                 if (b.life > 0 && b.hits(a)) {
-                    this.event('explodeBullet', b.x.val, b.y.val)
+                    this.event('explodeBullet', b.x.position(), b.y.position())
                     b.life = 0
                     a.life--
                 }
@@ -133,23 +135,23 @@ export class Level {
 
         this.asteroids.forEach(a => {
             a.integrate()
-            a.constrain(-100, -100, 2020, 1180)
+            a.wrap(-100, -100, 2020, 1180)
             if (a.life <= 0) {
                 if (a.radius >= 70) {
-                    this.event('explodeAsteroid', a.x.val, a.y.val)
+                    this.event('explodeAsteroid', a.x.position(), a.y.position())
                     this.ship.score += 100
                     for (let i = 0; i < 4; i++) {
-                        this.asteroids.push(new Asteroid(30, 2, a.x.val, a.y.val))
+                        this.asteroids.push(new Asteroid(30, 2, a.x.position(), a.y.position()))
                     }
                 } else {
                     this.ship.score += 70
-                    this.event('explodeChunk', a.x.val, a.y.val)
+                    this.event('explodeChunk', a.x.position(), a.y.position())
                 }
                 return
             }
             if (this.ship.life > 0 && a.hits(this.ship)) {
                 this.ship.life = 0
-                this.event('explodeShip', this.ship.x.val, this.ship.y.val)
+                this.event('explodeShip', this.ship.x.position(), this.ship.y.position())
             }
         })
 

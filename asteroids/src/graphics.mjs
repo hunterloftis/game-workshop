@@ -37,7 +37,7 @@ export default class Graphics {
     paintEntities(ctx, ...entities) {
         ctx.save()
             Draw.style(ctx, { strokeStyle: '#ff0', lineWidth: 3 })
-            entities.forEach(e => Draw.orientedCircle(ctx, e.x.val, e.y.val, e.radius, e.angle.val))
+            entities.forEach(e => Draw.orientedCircle(ctx, e.x.position(), e.y.position(), e.radius, e.angle.position()))
         ctx.restore()
     }
     paintBackground(ctx) {
@@ -51,8 +51,8 @@ export default class Graphics {
             const im = this.asteroids[a.id % this.asteroids.length]
             const frame = a.radius >= 70 ? 0 : 1
             ctx.save()
-            ctx.translate(a.x.val, a.y.val)
-            ctx.rotate(a.angle.val)
+            ctx.translate(a.x.position(), a.y.position())
+            ctx.rotate(a.angle.position())
             im.blit(ctx, 0, 0, 0.5, 0.5, frame)
             ctx.restore()
         })
@@ -62,8 +62,8 @@ export default class Graphics {
         
         const im = this.ship.image(0)
         ctx.save()
-            ctx.translate(ship.x.val, ship.y.val)
-            ctx.rotate(ship.angle.val)
+            ctx.translate(ship.x.position(), ship.y.position())
+            ctx.rotate(ship.angle.position())
             this.ship.blit(ctx, 0, 0, 0.35, 0.5)
 
             if (ship.burning) {
@@ -77,7 +77,7 @@ export default class Graphics {
         ctx.save()
             Draw.style(ctx, { strokeStyle: '#fff', lineWidth: 2 })
             bullets.forEach(b => {
-                Draw.line(ctx, b.x.val, b.y.val, b.x.val - b.x.velocity, b.y.val - b.y.velocity)
+                Draw.line(ctx, b.x.position(), b.y.position(), b.x.position() - b.x.velocity(), b.y.position() - b.y.velocity())
             })
         ctx.restore()
     }

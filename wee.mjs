@@ -141,9 +141,9 @@ export function CircleCircle(x1, y1, r1, x2, y2, r2) {
 }
 
 export class Verlet {
-    constructor(val) {
-        this.val = val
-        this.prev = val
+    constructor(position, velocity=0) {
+        this.val = position
+        this.prev = position - velocity
     }
     integrate(momentum=1, time=1) {
         const v = this.velocity()
@@ -155,6 +155,17 @@ export class Verlet {
     }
     constrain(min, max) {
         this.val = Math.max(min, Math.min(max, this.val))
+    }
+    wrap(min, max) {
+        const v = this.velocity()
+        if (this.val < min) {
+            this.val = max - (min - this.val)
+        } else if (this.val > max) {
+            this.val = min + (this.val - max)
+        } else {
+            return
+        }
+        this.prev = this.val - v
     }
     position() {
         return this.val
@@ -257,5 +268,14 @@ export class Draw {
 export class Rand {
     static range(min, max) {
         return min + Math.random() * (max - min)
+    }
+}
+
+export class Geom {
+    static project(dist, angle) {
+        return {
+            x: Math.cos(angle) * dist,
+            y: Math.sin(angle) * dist
+        }
     }
 }
