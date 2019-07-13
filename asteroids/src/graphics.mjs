@@ -28,9 +28,8 @@ class Animation {
     }
 }
 
-export default class Screen {
-    constructor(canvas) {
-        this.ctx = canvas.getContext('2d')
+export default class Graphics {
+    constructor() {
         this.bg = Sprite('assets/backgrounds', 'b.png')
         this.ship = Sprite('assets', 'ship.png')
         this.asteroids = [
@@ -51,18 +50,18 @@ export default class Screen {
         )
         this.animations = []
     }
-    paint(ship, asteroids, bullets) {
-        this.paintBackground(this.ctx)
+    paint(ctx, ship, asteroids, bullets) {
+        this.paintBackground(ctx)
         if (RENDER) {
-            this.paintAsteroids(this.ctx, asteroids)
-            this.paintShip(this.ctx, ship)
-            this.paintBullets(this.ctx, bullets)
-            this.paintAnimations(this.ctx)
+            this.paintAsteroids(ctx, asteroids)
+            this.paintShip(ctx, ship)
+            this.paintBullets(ctx, bullets)
+            this.paintAnimations(ctx)
         }
         if (DEBUG) {
-            this.paintEntities(this.ctx, ship, ...asteroids, ...bullets)
+            this.paintEntities(ctx, ship, ...asteroids, ...bullets)
         }
-        this.paintScore(this.ctx, ship.score)
+        this.paintScore(ctx, ship.score)
     }
     paintEntities(ctx, ...entities) {
         ctx.save()

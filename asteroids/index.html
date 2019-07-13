@@ -31,18 +31,20 @@
 	<script type='module'>
 
 		import { Loop } from '../wee.mjs'
+		import { FixedView } from '../wee.mjs'
 
 		import { Ship } from './src/entities.mjs'
 		import { Asteroid } from './src/entities.mjs'
 		import Keyboard from './src/keyboard.mjs'
-		import Screen from './src/screen.mjs'
+		import Graphics from './src/graphics.mjs'
 		import Audio from './src/audio.mjs'
 
 		const ship = new Ship(960, 540)
 		let asteroids = []
 		let bullets = []
 		const kb = new Keyboard({ArrowLeft: false, ArrowRight: false, ArrowUp: false, Shift: false})
-		const screen = new Screen(document.getElementById('canvas'))
+		const view = new FixedView(document.getElementById('canvas'))
+		const graphics = new Graphics()
 		const start = performance.now()
 		const audio = new Audio()
 		const loop = new Loop(update, 60)
@@ -68,7 +70,7 @@
 				b.integrate()
 				asteroids.forEach(a => {
 					if (b.life > 0 && b.hits(a)) {
-						screen.explodeBullet(b.x.val, b.y.val)
+						graphics.explodeBullet(b.x.val, b.y.val)
 						b.life = 0
 						a.life--
 					}
@@ -80,7 +82,7 @@
 				a.constrain(-100, -100, 2020, 1180)
 				if (a.life <= 0) {
 					if (a.radius >= 70) {
-						screen.explodeAsteroid(a.x.val, a.y.val)
+						graphics.explodeAsteroid(a.x.val, a.y.val)
 						audio.play(audio.largeExplosion)
 						ship.score += 100
 						for (let i = 0; i < 4; i++) {
@@ -88,14 +90,14 @@
 						}
 					} else {
 						ship.score += 70
-						screen.explodeChunk(a.x.val, a.y.val)
+						graphics.explodeChunk(a.x.val, a.y.val)
 						audio.play(audio.smallExplosion)
 					}
 					return
 				}
 				if (ship.life > 0 && a.hits(ship)) {
 					ship.life = 0
-					screen.explodeShip(ship.x.val, ship.y.val)
+					graphics.explodeShip(ship.x.val, ship.y.val)
 					audio.play(audio.largeExplosion)
 				}
 			})
@@ -103,7 +105,7 @@
 			asteroids = asteroids.filter(a => a.life > 0)
 			bullets = bullets.filter(b => b.life > 0)
 
-			screen.paint(ship, asteroids, bullets)
+			graphics.paint(view.ctx(), ship, asteroids, bullets)
 		}
 
 	</script>

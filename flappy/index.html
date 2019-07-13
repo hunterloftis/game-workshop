@@ -36,12 +36,14 @@
 	</div>
 	<script type='module'>
 
+		import { Loop } from '../wee.mjs'
+		import { FixedView } from '../wee.mjs'
+		
 		import { Level } from './src/game.mjs'
 		import { Input } from './src/input.mjs'
 		import Graphics from './src/graphics.mjs'
 		import Audio from './src/audio.mjs'
-		import { FixedView } from '../wee.mjs'
-		import { Loop } from '../wee.mjs'
+		
 
 		const DIST = 4200
 		const view = new FixedView(document.getElementById('canvas'))
