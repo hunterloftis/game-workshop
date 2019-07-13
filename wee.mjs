@@ -140,6 +140,8 @@ export function CircleCircle(x1, y1, r1, x2, y2, r2) {
     return (dist <= range)
 }
 
+// TODO: should implement formulas that will scale with time
+// http://hyperphysics.phy-astr.gsu.edu/hbase/lindrg.html
 export class Verlet {
     constructor(position, velocity=0) {
         this.val = position
