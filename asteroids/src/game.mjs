@@ -1,4 +1,5 @@
 import Verlet from './verlet.mjs'
+import { Rand } from '../../wee.mjs'
 
 const ROT_DAMP = 0.4
 const DAMP = 0.99
@@ -7,10 +8,6 @@ const TURN = 0.05
 const AST_SPEED = 4
 const AST_SPIN = 0.03
 
-function rand(min, max) {
-    return min + Math.random() * (max - min)
-}
-
 class Entity {
     constructor(radius, life, x, y, vx=0, vy=0, rotation=0) {
         this.radius = radius
@@ -18,7 +15,7 @@ class Entity {
         this.x = new Verlet(x, vx)
         this.y = new Verlet(y, vy)
         this.angle = new Verlet(0, rotation)
-        this.id = Math.floor(rand(0, 99999999999999))
+        this.id = Math.floor(Rand.range(0, 99999999999999))
     }
     integrate(damp = 1, rotDamp = 1) {
         this.x.integrate(damp)
@@ -39,7 +36,7 @@ class Entity {
 
 class Asteroid extends Entity {
     constructor(radius, life, x, y) {
-        super(radius, life, x, y, rand(-AST_SPEED, AST_SPEED), rand(-AST_SPEED, AST_SPEED), rand(-AST_SPIN, AST_SPIN))
+        super(radius, life, x, y, Rand.range(-AST_SPEED, AST_SPEED), Rand.range(-AST_SPEED, AST_SPEED), Rand.range(-AST_SPIN, AST_SPIN))
     }
 }
 

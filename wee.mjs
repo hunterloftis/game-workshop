@@ -253,3 +253,9 @@ export class Draw {
         ctx.translate((Math.random() - 0.5) * amount, (Math.random() - 0.5) * amount)
     }    
 }
+
+export class Rand {
+    static range(min, max) {
+        return min + Math.random() * (max - min)
+    }
+}
