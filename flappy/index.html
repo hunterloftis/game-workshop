@@ -1,0 +1,68 @@
+<html>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<link rel="manifest" href="manifest.json">
+	<style>
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+			touch-action: none;
+		}
+		body, html {
+			width: 100%;
+			height: 100%;
+			background: #000;
+		}
+		body {
+			position: fixed;
+		}
+		#container {
+			display: grid;
+			height: 100%;
+		}
+		#canvas {
+			max-width: 100%;
+            max-height: 100%;
+            margin: auto;
+		}
+	</style>
+</head>
+
+<body>
+	<div id='container'>
+		<canvas id='canvas' width='1920' height='1080'></canvas>
+	</div>
+	<script type='module'>
+
+		import { Level } from './src/game.mjs'
+		import { Input } from './src/input.mjs'
+		import Graphics from './src/graphics.mjs'
+		import Audio from './src/audio.mjs'
+		import { FixedView } from '../wee.mjs'
+		import { Loop } from '../wee.mjs'
+
+		const DIST = 4200
+		const view = new FixedView(document.getElementById('canvas'))
+		const graphics = new Graphics()
+		const input = new Input()
+		const audio = new Audio()
+		let level = new Level(DIST)
+		const loop = new Loop(update, 240)
+
+		function update(ticks, ms) {
+			while(ticks--) {
+				level.update(ms, input.next())
+				if (level.complete()) {
+					level = new Level(DIST)
+				}
+			}
+			audio.accompany(level.state)
+			graphics.paint(level, view.ctx())
+		}
+
+	</script>
+</body>
+
+</html>

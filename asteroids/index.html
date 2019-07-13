@@ -1,0 +1,114 @@
+<html>
+
+<head>
+	<style>
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+		body, html {
+			width: 100%;
+			height: 100%;
+			background: #000;
+		}
+		#container {
+			display: grid;
+			height: 100%;
+		}
+		#canvas {
+			max-width: 100%;
+            max-height: 100%;
+            margin: auto;
+			border: solid 1px #333;
+		}
+	</style>
+</head>
+
+<body>
+	<div id='container'>
+		<canvas id='canvas' width='1920' height='1080'></canvas>
+	</div>
+	<script type='module'>
+
+		import { Ship } from './src/entities.mjs'
+		import { Asteroid } from './src/entities.mjs'
+		import Keyboard from './src/keyboard.mjs'
+		import Screen from './src/screen.mjs'
+		import Audio from './src/audio.mjs'
+
+		const ship = new Ship(960, 540)
+		let asteroids = []
+		let bullets = []
+		const kb = new Keyboard({ArrowLeft: false, ArrowRight: false, ArrowUp: false, Shift: false})
+		const screen = new Screen(document.getElementById('canvas'))
+		const start = performance.now()
+		const audio = new Audio()
+
+		requestAnimationFrame(loop)
+
+		function loop() {
+			const seconds = (performance.now() - start) / 1000
+			const difficulty = Math.min(Math.ceil(seconds / 5 + 3), 30)
+
+			while (asteroids.length < difficulty) {
+				asteroids.push(new Asteroid(70, 5, Math.random() * 1920, -90))
+			}
+			
+			if (ship.life > 0) {
+				ship.integrate()
+				if (kb.keys.ArrowLeft) ship.turnLeft()
+				if (kb.keys.ArrowRight) ship.turnRight()
+				if (kb.keys.ArrowUp) ship.accelerate()
+				if (kb.keys.Shift) bullets.push(...ship.fire())
+				ship.constrain(0, 0, 1920, 1080)
+			}
+
+			bullets.forEach(b => {
+				b.integrate()
+				asteroids.forEach(a => {
+					if (b.life > 0 && b.hits(a)) {
+						screen.explodeBullet(b.x.val, b.y.val)
+						b.life = 0
+						a.life--
+					}
+				})
+			})
+
+			asteroids.forEach(a => {
+				a.integrate()
+				a.constrain(-100, -100, 2020, 1180)
+				if (a.life <= 0) {
+					if (a.radius >= 70) {
+						screen.explodeAsteroid(a.x.val, a.y.val)
+						audio.play(audio.largeExplosion)
+						ship.score += 100
+						for (let i = 0; i < 4; i++) {
+							asteroids.push(new Asteroid(30, 2, a.x.val, a.y.val))
+						}
+					} else {
+						ship.score += 70
+						screen.explodeChunk(a.x.val, a.y.val)
+						audio.play(audio.smallExplosion)
+					}
+					return
+				}
+				if (ship.life > 0 && a.hits(ship)) {
+					ship.life = 0
+					screen.explodeShip(ship.x.val, ship.y.val)
+					audio.play(audio.largeExplosion)
+				}
+			})
+
+			asteroids = asteroids.filter(a => a.life > 0)
+			bullets = bullets.filter(b => b.life > 0)
+
+			screen.paint(ship, asteroids, bullets)
+
+			requestAnimationFrame(loop)
+		}
+
+	</script>
+</body>
+
+</html>
