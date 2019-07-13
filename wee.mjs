@@ -272,10 +272,10 @@ export class Rand {
 }
 
 export class Geom {
-    static project(dist, angle) {
+    static project(dist, angle, ox=0, oy=0) {
         return {
-            x: Math.cos(angle) * dist,
-            y: Math.sin(angle) * dist
+            x: ox + Math.cos(angle) * dist,
+            y: oy + Math.sin(angle) * dist
         }
     }
 }

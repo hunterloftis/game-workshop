@@ -70,10 +70,8 @@ class Ship extends Entity {
         if (interval != 0 && interval != 4) return []
         const delta = interval === 0 ? -0.5 : 0.5
         const angle = this.angle.position() + delta
-        const x = this.x.position() + Math.cos(angle) * this.radius
-        const y = this.y.position() + Math.sin(angle) * this.radius
-        const vx = Math.cos(this.angle.position()) * 20
-        const vy = Math.sin(this.angle.position()) * 20
+        const { x, y } = Geom.project(this.radius, angle, this.x.position(), this.y.position())
+        const { x: vx, y: vy } = Geom.project(20, this.angle.position())
         return [new Bullet(x, y, vx, vy)]
     }
 }
