@@ -1,7 +1,7 @@
 import Verlet from './verlet.mjs'
 
 const ROT_DAMP = 0.4
-const DAMP = 0.97
+const DAMP = 0.99
 const SPEED = 0.4
 const TURN = 0.05
 const AST_SPEED = 4
