@@ -20,7 +20,6 @@ export class Loop {
 }
 
 const VIEW_DEFAULTS = {
-    bgStyle: '#000',
     pixelated: false
 }
 
@@ -30,7 +29,6 @@ export class FixedView {
         this.canvas = canvas
 
         canvas.style.msInterpolationMode = 'nearest-neighbor'
-        canvas.style.background = opts.bgStyle
 
         const styles = [
             'optimizeSpeed', 'crisp-edges', '-moz-crisp-edges',
