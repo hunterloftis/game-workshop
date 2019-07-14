@@ -53,9 +53,9 @@
 		let level = new Level(DIST)
 		const loop = new Loop(update, 240)
 
-		function update(ticks, ms) {
+		function update(ticks) {
 			while(ticks--) {
-				level.update(ms, input.next())
+				level.update(input.next())
 				if (level.complete()) {
 					level = new Level(DIST)
 				}

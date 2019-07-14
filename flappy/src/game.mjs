@@ -4,7 +4,7 @@ import { State } from '../../wee.mjs';
 
 const MOMENTUM = 0.999
 const GRAVITY = 60 / 1000
-const SPEED = 600 / 1000
+const SPEED = 2500 / 1000
 const FLAP = 6500 / 1000
 const MAX_Y = 980
 const WIN_DELAY = 4000
@@ -27,16 +27,16 @@ class Flappy extends Collider {
         this.height = new Verlet(this.y)
         this.died = 0
     }
-    update(tick, flapping, blocks, weightless=false) {
-        if (!this.died) this.x += SPEED * tick
+    update(flapping, blocks, weightless=false) {
+        if (!this.died) this.x += SPEED
         if (weightless) return
 
-        this.height.integrate(MOMENTUM, tick)
-        this.height.force(GRAVITY, tick)
+        this.height.integrate(MOMENTUM)
+        this.height.force(GRAVITY)
         this.height.constrain(0, MAX_Y)
 
         if (flapping && !this.died) {
-            this.height.force(-FLAP, tick)
+            this.height.force(-FLAP)
         }
 
         if (this.height.position() >= MAX_Y && !this.died) {
@@ -91,7 +91,7 @@ export class Level {
             }
         }    
     }
-    update(tick, input) {
+    update(input) {
         if (this.state.is('ready')) {
             if (input) this.state.to('playing')
             else return
@@ -116,7 +116,7 @@ export class Level {
         }
         else return
 
-        this.flappy.update(tick, input, this.blocks, this.state.is('won'))
+        this.flappy.update(input, this.blocks, this.state.is('won'))
         this.coins.forEach(c => c.update(this.flappy))
     }
     score() {

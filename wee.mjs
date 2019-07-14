@@ -15,7 +15,7 @@ export class Loop {
         const ticks = Math.min(MAX_TICKS, Math.floor(delta / this.tick))
         this.time += this.tick * ticks
 
-        this.updateFn(ticks, this.tick, time)
+        this.updateFn(ticks)
     }
 }
 
