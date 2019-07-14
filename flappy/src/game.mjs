@@ -2,13 +2,13 @@ import { CircleCircle } from '../../wee.mjs'
 import { Verlet } from '../../wee.mjs'
 import { State } from '../../wee.mjs';
 
-const GRAVITY = 0.003
 const MOMENTUM = 0.999
+const GRAVITY = 60 / 1000
+const SPEED = 600 / 1000
+const FLAP = 6500 / 1000
 const MAX_Y = 980
 const WIN_DELAY = 4000
 const LOSE_DELAY = 1000
-const SPEED = 0.6
-const FLAP = 0.33
 
 class Collider {
     constructor(x, y, size=50) {
