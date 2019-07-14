@@ -43,11 +43,11 @@
 		const graphics = new Graphics()
 		const audio = new Audio()
 		let level = new Level()
-		const loop = new Loop(update, 60)
+		const loop = new Loop(update, 240)
 
-		function update(ticks, ms) {
+		function update(ticks) {
 			while(ticks--) {
-				level.update(ms, kb.keys)
+				level.update(kb.keys)
 			}
 
 			const events = level.flush()

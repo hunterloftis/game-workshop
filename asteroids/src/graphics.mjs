@@ -77,7 +77,9 @@ export default class Graphics {
         ctx.save()
             Draw.style(ctx, { strokeStyle: '#fff', lineWidth: 2 })
             bullets.forEach(b => {
-                Draw.line(ctx, b.x.position(), b.y.position(), b.x.position() - b.x.velocity(), b.y.position() - b.y.velocity())
+                const vx = b.x.velocity() * 3
+                const vy = b.y.velocity() * 3
+                Draw.line(ctx, b.x.position(), b.y.position(), b.x.position() - vx, b.y.position() - vy)
             })
         ctx.restore()
     }

@@ -2,12 +2,16 @@ import { Verlet } from '../../wee.mjs'
 import { Rand } from '../../wee.mjs'
 import { Geom } from '../../wee.mjs'
 
-const MOMENTUM = 0.999
+const SEC = 1000
+const MOMENTUM = 0.99
 const ROT_MOMENTUM = 0.9
-const SPEED = 0.7
-const TURN = 0.07
-const AST_SPEED = 3
-const AST_SPIN = 0.03
+const SPEED = 40 / SEC
+const TURN = 2 / SEC
+const AST_SPEED = 600 / SEC
+const AST_SPIN = 3 / SEC
+const BULLET_SPEED = 7000 / SEC
+const BULLET_LIFE = 500
+const BULLET_INTERVAL = 25
 
 class Entity {
     constructor(radius, life, x, y, vx=0, vy=0, rotation=0) {
@@ -18,10 +22,10 @@ class Entity {
         this.angle = new Verlet(0, rotation)
         this.id = Math.floor(Rand.range(0, 99999999999999))
     }
-    integrate(ms, momentum = 1, rotMomentum = 1) {
-        this.x.integrate(momentum, ms)
-        this.y.integrate(momentum, ms)
-        this.angle.integrate(rotMomentum, ms)
+    integrate(momentum = 1, rotMomentum = 1) {
+        this.x.integrate(momentum)
+        this.y.integrate(momentum)
+        this.angle.integrate(rotMomentum)
     }
     wrap(minX, minY, maxX, maxY) {
         this.x.wrap(minX, maxX)
@@ -60,29 +64,29 @@ class Ship extends Entity {
         this.y.force(y)
         this.burning = true
     }
-    integrate(ms) {
-        super.integrate(ms, MOMENTUM, ROT_MOMENTUM)
+    integrate() {
+        super.integrate(MOMENTUM, ROT_MOMENTUM)
         this.burning = false
     }
     fire() {    // TODO: simplify
-        const interval = this.fired % 9
+        const interval = this.fired % BULLET_INTERVAL
         this.fired++
         if (interval != 0 && interval != 4) return []
         const delta = interval === 0 ? -0.5 : 0.5
         const angle = this.angle.position() + delta
-        const { x, y } = Geom.project(this.radius, angle, this.x.position(), this.y.position())
-        const { x: vx, y: vy } = Geom.project(20, this.angle.position())
+        const { x, y } = Geom.project(this.radius * 1.2, angle, this.x.position(), this.y.position())
+        const { x: vx, y: vy } = Geom.project(BULLET_SPEED, this.angle.position())
         return [new Bullet(x, y, vx, vy)]
     }
 }
 
 class Bullet extends Entity {
     constructor(x, y, vx, vy) {
-        super(1, 100, x, y, vx, vy)
+        super(1, BULLET_LIFE, x, y, vx, vy)
     }
-    integrate(ms) {
+    integrate() {
         if (this.life-- <= 0) return false
-        super.integrate(ms)
+        super.integrate()
         return true
     }
 }
@@ -103,7 +107,7 @@ export class Level {
         this.events = []
         return e
     }
-    update(ms, keys) {
+    update(keys) {
         const seconds = (performance.now() - this.start) / 1000
         const difficulty = Math.min(Math.ceil(seconds / 5 + 3), 30)
 
@@ -112,7 +116,7 @@ export class Level {
         }
         
         if (this.ship.life > 0) {
-            this.ship.integrate(ms)
+            this.ship.integrate()
             if (keys.ArrowLeft) this.ship.turnLeft()
             if (keys.ArrowRight) this.ship.turnRight()
             if (keys.ArrowUp) this.ship.accelerate()
@@ -121,7 +125,7 @@ export class Level {
         }
 
         this.bullets.forEach(b => {
-            b.integrate(ms)
+            b.integrate()
             this.asteroids.forEach(a => {
                 if (b.life > 0 && b.hits(a)) {
                     this.event('explodeBullet', b.x.position(), b.y.position())
@@ -132,7 +136,7 @@ export class Level {
         })
 
         this.asteroids.forEach(a => {
-            a.integrate(ms)
+            a.integrate()
             a.wrap(-100, -100, 2020, 1180)
             if (a.life <= 0) {
                 if (a.radius >= 70) {

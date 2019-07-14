@@ -140,20 +140,18 @@ export function CircleCircle(x1, y1, r1, x2, y2, r2) {
     return (dist <= range)
 }
 
-// TODO: should implement formulas that will scale with time
-// http://hyperphysics.phy-astr.gsu.edu/hbase/lindrg.html
 export class Verlet {
     constructor(position, velocity=0) {
         this.val = position
         this.prev = position - velocity
     }
-    integrate(momentum=1, time=1) {
+    integrate(momentum=1) {
         const v = this.velocity()
         this.prev = this.val
-        this.val += v * Math.pow(momentum, time)
+        this.val += v * momentum
     }
-    force(acceleration, time=1) {
-        this.val += acceleration * time * time
+    force(acceleration) {
+        this.val += acceleration
     }
     constrain(min, max) {
         this.val = Math.max(min, Math.min(max, this.val))
