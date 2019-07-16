@@ -47,3 +47,16 @@
 - https://github.com/shakiba/planck.js
 - https://www.gamasutra.com/blogs/BramStolk/20160408/269988/Fixing_your_time_step_the_easy_way_with_the_golden_48537_ms.php
 - https://www.youtube.com/watch?v=sUVqa-72-Ms
+
+## Concepts, ordered
+
+1. Blitting animated sprites
+2. Game loop with fixed timesteps and independent render
+3. Circle-Circle collisions
+4. Verlet integration
+5. Music or sound effects
+
+### Possible simple workshops
+
+- Flappy bird (too complex?)
+- SkiFree (no verlet)
