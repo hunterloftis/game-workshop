@@ -53,24 +53,28 @@
 		requestAnimationFrame(loop)
 
 		function loop() {
-			const now = performance.now()
 			requestAnimationFrame(loop)
 			
+			update(performance.now())
+			playMusic(game.started && !game.flappy.death)
+			view.render(ctx, game)
+		}
+
+		function update(now) {
 			while (time + tick <= now) {
 				const complete = game.update(input.shift())
 				if (complete) game = new Game()
 				time += tick
 			}
+		}
 
-			if (game.started && !game.flappy.death) {
-				music.play()
-			}
-			else {
+		function playMusic(on) {
+			if (!on) {
 				music.pause()
 				music.currentTime = 0.5
+				return
 			}
-			
-			view.render(ctx, game)
+			music.play()
 		}
 
 	</script>

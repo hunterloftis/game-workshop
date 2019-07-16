@@ -3,7 +3,7 @@ const GRAVITY = 0.1
 const FLAP = 10
 const SPEED = 3
 const GRID = 200
-const DENSITY = 0.05
+const DENSITY = 0.07
 
 class Entity {
     constructor(x, y, size) {
@@ -73,8 +73,8 @@ export default class Game {
         return this.flappy.death && performance.now() > this.flappy.death + 2000
     }
     score() {
-        return this.spikes.reduce((sum, s) => {
-            if (this.flappy.x > s.x) return sum + 100
+        return this.spikes.reduce((sum, spike) => {
+            if (this.flappy.x > spike.x) return sum + 100
             return sum
         }, 0)
     }
