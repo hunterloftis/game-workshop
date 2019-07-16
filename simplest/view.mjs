@@ -1,3 +1,6 @@
+const DEBUG = false
+const SCROLL_SPEED = 0.25
+
 function Sprite(...paths) {
     return paths.map(p => {
         const im = new Image()
@@ -13,12 +16,13 @@ export default class View {
         this.spike = Sprite('assets/spike.png')
     }
     render(ctx, game) {
-        const scroll = (game.flappy.x * 0.2) % 1920
+        const scroll = (game.flappy.x * SCROLL_SPEED) % 1920
         const frame = game.started
             ? Math.floor(performance.now() / 100) % this.bird.length
             : 0
         const bird = this.bird[frame]
         const spike = this.spike[0]
+        const score = game.score()
 
         ctx.save()
             if (game.flappy.death && performance.now() < game.flappy.death + 100) {
@@ -26,14 +30,19 @@ export default class View {
             }
             ctx.drawImage(this.bg[0], -scroll, 0)
             ctx.drawImage(this.bg[0], -scroll + 1920, 0)
-            ctx.translate(250 - game.flappy.x, 0)
-
-            ctx.drawImage(bird, game.flappy.x - bird.width * 0.5, game.flappy.y - bird.height * 0.5)
-            game.spikes.forEach(s => {
-                if (s.x < game.flappy.x - 300 || s.x > game.flappy.x + 2000) return
-                ctx.drawImage(spike, s.x - spike.width * 0.5, s.y - spike.height * 0.5)
-            })
-            this.drawEntities(ctx, game.flappy, ...game.spikes)
+            ctx.save()
+                ctx.translate(250 - game.flappy.x, 0)
+                ctx.drawImage(bird, game.flappy.x - bird.width * 0.6, game.flappy.y - bird.height * 0.5)
+                game.spikes.forEach(s => {
+                    if (s.x < game.flappy.x - 300 || s.x > game.flappy.x + 2000) return
+                    ctx.drawImage(spike, s.x - spike.width * 0.5, s.y - spike.height * 0.55)
+                })
+                if (DEBUG) this.drawEntities(ctx, game.flappy, ...game.spikes)
+            ctx.restore()
+            ctx.fillStyle = '#f99'
+            ctx.font = '92px bold verdana'
+            ctx.textBaseline = 'top'
+            ctx.fillText(score, 10, 10)
         ctx.restore()
     }
     drawEntities(ctx, ...entities) {

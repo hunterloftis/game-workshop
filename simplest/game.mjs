@@ -3,13 +3,24 @@ const GRAVITY = 0.1
 const FLAP = 10
 const SPEED = 3
 const GRID = 200
-const DENSITY = 0.2
+const DENSITY = 0.05
 
-class Flappy {
+class Entity {
+    constructor(x, y, size) {
+        Object.assign(this, { x, y, size })
+    }
+    hits(other) {
+        const dx = this.x - other.x
+        const dy = this.y - other.y
+        const range = this.size + other.size
+        return Math.sqrt(dx * dx + dy * dy) < range
+    }
+}
+
+class Flappy extends Entity {
     constructor(x, y) {
-        this.x = x
-        this.y = this.prevY = y
-        this.size = 50
+        super(x, y, 55)
+        this.prevY = this.y
         this.death = 0
     }
     update(flapping) {
@@ -21,18 +32,17 @@ class Flappy {
         this.x += SPEED
         if (flapping) this.y -= FLAP
         if (this.y < 40) this.y = 40
-        if (this.y > 1055) this.die()
+        if (this.y > 2000) this.die()
     }
     die() {
         this.death = this.death || performance.now()
     }
 }
 
-function hits(a, b) {
-    const dx = a.x - b.x
-    const dy = a.y - b.y
-    const range = a.size + b.size
-    return Math.sqrt(dx * dx + dy * dy) < range
+class Spike extends Entity {
+    constructor(x, y) {
+        super(x, y, 60)
+    }
 }
 
 export default class Game {
@@ -44,13 +54,8 @@ export default class Game {
         // TODO: better level generation
         for (let x = 0; x < 800; x++) {
             for (let y = 0; y < 5; y++) {
-                const chance = 0.1 + x / 800 * DENSITY
-                if (Math.random() < chance) {
-                    this.spikes.push({
-                        x: 960 + x * GRID,
-                        y: 200 + y * GRID,
-                        size: 50
-                    })
+                if (Math.random() < DENSITY) {
+                    this.spikes.push(new Spike(960 + x * GRID, 200 + y * GRID))
                 }
             }
         }
@@ -63,8 +68,14 @@ export default class Game {
 
         this.flappy.update(flapping)
         this.spikes.forEach(s => {
-            if (hits(this.flappy, s)) this.flappy.die()
+            if (s.hits(this.flappy)) this.flappy.die()
         })
         return this.flappy.death && performance.now() > this.flappy.death + 2000
+    }
+    score() {
+        return this.spikes.reduce((sum, s) => {
+            if (this.flappy.x > s.x) return sum + 100
+            return sum
+        }, 0)
     }
 }
