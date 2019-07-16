@@ -5,22 +5,11 @@ const SPEED = 3
 const GRID = 200
 const DENSITY = 0.2
 
-class Entity {
-    constructor(x, y, size=50) {
-        Object.assign(this, { x, y, size })
-    }
-    hits(other) {
-        const dx = this.x - other.x
-        const dy = this.y - other.y
-        const range = this.size + other.size
-        return Math.sqrt(dx * dx + dy * dy) < range
-    }
-}
-
-class Flappy extends Entity {
+class Flappy {
     constructor(x, y) {
-        super(x, y, 50)
-        this.prevY = this.y
+        this.x = x
+        this.y = this.prevY = y
+        this.size = 50
         this.death = 0
     }
     update(flapping) {
@@ -39,10 +28,11 @@ class Flappy extends Entity {
     }
 }
 
-class Spike extends Entity {
-    constructor(x, y) {
-        super(x, y, 50)
-    }
+function hits(a, b) {
+    const dx = a.x - b.x
+    const dy = a.y - b.y
+    const range = a.size + b.size
+    return Math.sqrt(dx * dx + dy * dy) < range
 }
 
 export default class Game {
@@ -56,7 +46,11 @@ export default class Game {
             for (let y = 0; y < 5; y++) {
                 const chance = 0.1 + x / 800 * DENSITY
                 if (Math.random() < chance) {
-                    this.spikes.push(new Spike(960 + x * GRID, 200 + y * GRID))
+                    this.spikes.push({
+                        x: 960 + x * GRID,
+                        y: 200 + y * GRID,
+                        size: 50
+                    })
                 }
             }
         }
@@ -69,7 +63,7 @@ export default class Game {
 
         this.flappy.update(flapping)
         this.spikes.forEach(s => {
-            if (s.hits(this.flappy)) this.flappy.die()
+            if (hits(this.flappy, s)) this.flappy.die()
         })
         return this.flappy.death && performance.now() > this.flappy.death + 2000
     }

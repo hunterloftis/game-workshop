@@ -39,7 +39,9 @@
 		import View from './view.mjs'
 
 		let game = new Game()
-		const view = new View(document.getElementById('canvas'))
+		const canvas = document.getElementById('canvas')
+		const ctx = canvas.getContext('2d', { alpha: false })
+		const view = new View()
 		const tick = 1000 / 240
 		const input = []
 		
@@ -58,7 +60,7 @@
 				time += tick
 			}
 			
-			view.render(game)
+			view.render(ctx, game)
 		}
 
 	</script>
