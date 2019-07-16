@@ -59,4 +59,7 @@
 ### Possible simple workshops
 
 - Flappy bird (too complex?)
+    - https://opengameart.org/content/cozy-endless-game-background
+    - https://opengameart.org/content/bevouliin-free-flappy-chicken
+    - https://opengameart.org/content/spiky-monster-obstacle
 - SkiFree (no verlet)
