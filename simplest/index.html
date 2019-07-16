@@ -38,7 +38,7 @@
 		import Game from './game.mjs'
 		import View from './view.mjs'
 
-		const game = new Game()
+		let game = new Game()
 		const view = new View(document.getElementById('canvas'))
 		const tick = 1000 / 240
 		const input = []
@@ -53,7 +53,8 @@
 
 			const now = performance.now()
 			while (time + tick <= now) {
-				game.update(input.shift())
+				const complete = game.update(input.shift())
+				if (complete) game = new Game()
 				time += tick
 			}
 			

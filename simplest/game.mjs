@@ -21,16 +21,21 @@ class Flappy extends Entity {
     constructor(x, y) {
         super(x, y, 50)
         this.prevY = this.y
+        this.death = 0
     }
     update(flapping) {
-        this.x += SPEED
-
         const yVel = this.y - this.prevY
         this.prevY = this.y
         this.y += yVel * MOMENTUM + GRAVITY
+        if (this.death) return
+
+        this.x += SPEED
         if (flapping) this.y -= FLAP
         if (this.y < 40) this.y = 40
-        if (this.y > 1055) throw new Error('need to lose')
+        if (this.y > 1055) this.die()
+    }
+    die() {
+        this.death = this.death || performance.now()
     }
 }
 
@@ -44,6 +49,7 @@ export default class Game {
     constructor() {
         this.flappy = new Flappy(0, 540)
         this.spikes = []
+        this.started = false
 
         // TODO: better level generation
         for (let x = 0; x < 800; x++) {
@@ -56,9 +62,15 @@ export default class Game {
         }
     }
     update(flapping) {
+        if (!this.started) {
+            if (!flapping) return false
+            this.started = true
+        }
+
         this.flappy.update(flapping)
         this.spikes.forEach(s => {
-            if (s.hits(this.flappy)) throw new Error('need to lose')
+            if (s.hits(this.flappy)) this.flappy.die()
         })
+        return this.flappy.death && performance.now() > this.flappy.death + 2000
     }
 }

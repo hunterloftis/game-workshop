@@ -16,19 +16,28 @@ export default class View {
     render(game) {
         const ctx = this.ctx
         const scroll = (game.flappy.x * 0.2) % 1920
-        const frame = Math.floor(performance.now() / 100) % this.bird.length
+        const frame = game.started
+            ? Math.floor(performance.now() / 100) % this.bird.length
+            : 0
         const bird = this.bird[frame]
         const spike = this.spike[0]
 
         ctx.save()
+            if (game.flappy.death && performance.now() < game.flappy.death + 100) {
+                ctx.translate(Math.random() * 10, Math.random() * 10)
+            }
             ctx.drawImage(this.bg[0], -scroll, 0)
             ctx.drawImage(this.bg[0], -scroll + 1920, 0)
             ctx.translate(250 - game.flappy.x, 0)
 
             ctx.drawImage(bird, game.flappy.x - bird.width * 0.5, game.flappy.y - bird.height * 0.5)
             game.spikes.forEach(s => {
+                if (s.x < game.flappy.x - 300 || s.x > game.flappy.x + 2000) return
                 ctx.drawImage(spike, s.x - spike.width * 0.5, s.y - spike.height * 0.5)
             })
         ctx.restore()
+    }
+    drawEntities(entities) {
+        
     }
 }
