@@ -21,7 +21,7 @@
 			display: grid;
 			height: 100%;
 		}
-		#canvas {
+		#viewport {
 			max-width: 100%;
             max-height: 100%;
             margin: auto;
@@ -31,7 +31,8 @@
 
 <body>
 	<div id='container'>
-		<canvas id='canvas' width='1920' height='1080'></canvas>
+		<canvas id='viewport' width='1920' height='1080'></canvas>
+		<audio id='music' src='assets/music.mp3' />
 	</div>
 	<script type='module'>
 
@@ -39,8 +40,9 @@
 		import View from './view.mjs'
 
 		let game = new Game()
-		const canvas = document.getElementById('canvas')
-		const ctx = canvas.getContext('2d', { alpha: false })
+		const viewport = document.getElementById('viewport')
+		const ctx = viewport.getContext('2d', { alpha: false })
+		const music = document.getElementById('music')
 		const view = new View()
 		const tick = 1000 / 240
 		const input = []
@@ -51,13 +53,21 @@
 		requestAnimationFrame(loop)
 
 		function loop() {
-			requestAnimationFrame(loop)
-
 			const now = performance.now()
+			requestAnimationFrame(loop)
+			
 			while (time + tick <= now) {
 				const complete = game.update(input.shift())
 				if (complete) game = new Game()
 				time += tick
+			}
+
+			if (game.started && !game.flappy.death) {
+				music.play()
+			}
+			else {
+				music.pause()
+				music.currentTime = 0.5
 			}
 			
 			view.render(ctx, game)
