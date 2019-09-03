@@ -3,7 +3,7 @@ const GRAVITY = 0.1
 const FLAP = 10
 const SPEED = 3
 const GRID = 200
-const DENSITY = 0.07
+const DENSITY = 0.06
 
 class Entity {
     constructor(x, y, size) {
@@ -41,7 +41,7 @@ class Flappy extends Entity {
 
 class Spike extends Entity {
     constructor(x, y) {
-        super(x, y, 60)
+        super(x, y, 55)
     }
 }
 
