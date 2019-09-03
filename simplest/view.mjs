@@ -1,26 +1,32 @@
 const FLAPPY_X = 250
 const SCROLL_SPEED = 0.25
 
-function Sprite(...paths) {
-    return paths.map(p => {
+function Sprite(path, n = 1) {
+    const files = Array(n).fill(true).map((_, n) => `${path}${n}.png`)
+    return files.map(f => {
         const im = new Image()
-        im.src = p
+        im.src = f
         return im
     })
 }
 
 export default class View {
     constructor() {
-        this.bg = Sprite('assets/background.png')
-        this.bird = Sprite('assets/flap1.png', 'assets/flap2.png', 'assets/flap3.png', 'assets/flap4.png')
-        this.spike = Sprite('assets/spike.png')
+        this.bg = Sprite('assets/background')
+        this.bird = Sprite('assets/flap', 4)
+        this.spike = Sprite('assets/spike')
+        this.coin = Sprite('assets/coin', 10)
     }
     render(ctx, game) {
         const scroll = (game.flappy.x * SCROLL_SPEED) % 1920
-        const frame = game.started
+        const birdFrame = game.started
             ? Math.floor(performance.now() / 100) % this.bird.length
             : 0
-        const bird = this.bird[frame]
+        const coinFrame = game.started
+            ? Math.floor(performance.now() / 100) % this.coin.length
+            : 0
+        const bird = this.bird[birdFrame]
+        const coin = this.coin[coinFrame]
         const spike = this.spike[0]
         const score = game.score()
 
@@ -36,6 +42,11 @@ export default class View {
                 game.spikes.forEach(s => {
                     if (s.x < game.flappy.x - 300 || s.x > game.flappy.x + 2000) return
                     ctx.drawImage(spike, s.x - spike.width * 0.5, s.y - spike.height * 0.55)
+                })
+                game.coins.forEach(c => {
+                    if (c.collected) return
+                    if (c.x < game.flappy.x - 300 || c.x > game.flappy.x + 2000) return
+                    ctx.drawImage(coin, c.x - coin.width * 0.5, c.y - coin.height * 0.55)
                 })
             ctx.restore()
             ctx.fillStyle = '#f99'

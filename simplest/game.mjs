@@ -1,9 +1,22 @@
 const MOMENTUM = 0.99
 const GRAVITY = 0.1
-const FLAP = 10
-const SPEED = 3
-const GRID = 200
-const DENSITY = 0.06
+const FLAP_POWER = 10
+const FLY_SPEED = 3
+const COIN_POINTS = 100
+const DEATH_DELAY = 3000
+
+const GRID_LEFT = 960
+const GRID_TOP = 200
+const GRID_SIZE = 200
+const GRID_COLUMNS = 800
+const GRID_ROWS = 5
+const GRID_DENSITY = 0.06
+
+const FLAPPY_SIZE = 55
+const SPIKE_SIZE = 50
+const COIN_SIZE = 60
+const CEILING = 40
+const FLOOR = 2000
 
 class Entity {
     constructor(x, y, size) {
@@ -19,7 +32,7 @@ class Entity {
 
 class Flappy extends Entity {
     constructor(x, y) {
-        super(x, y, 55)
+        super(x, y, FLAPPY_SIZE)
         this.prevY = this.y
         this.death = 0
     }
@@ -29,10 +42,10 @@ class Flappy extends Entity {
         this.y += yVel * MOMENTUM + GRAVITY
         if (this.death) return
 
-        this.x += SPEED
-        if (flapping) this.y -= FLAP
-        if (this.y < 40) this.y = 40
-        if (this.y > 2000) this.die()
+        this.x += FLY_SPEED
+        if (flapping) this.y -= FLAP_POWER
+        if (this.y < CEILING) this.y = CEILING
+        if (this.y > FLOOR) this.die()
     }
     die() {
         this.death = this.death || performance.now()
@@ -41,7 +54,17 @@ class Flappy extends Entity {
 
 class Spike extends Entity {
     constructor(x, y) {
-        super(x, y, 55)
+        super(x, y, SPIKE_SIZE)
+    }
+}
+
+class Coin extends Entity {
+    constructor(x, y) {
+        super(x, y, COIN_SIZE)
+        this.collected = false
+    }
+    collect() {
+        this.collected = true
     }
 }
 
@@ -49,13 +72,18 @@ export default class Game {
     constructor() {
         this.flappy = new Flappy(0, 540)
         this.spikes = []
+        this.coins = []
         this.started = false
 
-        // TODO: better level generation
-        for (let x = 0; x < 800; x++) {
-            for (let y = 0; y < 5; y++) {
-                if (Math.random() < DENSITY) {
-                    this.spikes.push(new Spike(960 + x * GRID, 200 + y * GRID))
+        for (let c = 0; c < GRID_COLUMNS; c++) {
+            for (let r = 0; r < GRID_ROWS; r++) {
+                const x = GRID_LEFT + c * GRID_SIZE
+                const y = GRID_TOP + r * GRID_SIZE
+                if (Math.random() < GRID_DENSITY) {
+                    this.spikes.push(new Spike(x, y))
+                }
+                else if (Math.random() < GRID_DENSITY) {
+                    this.coins.push(new Coin(x, y))
                 }
             }
         }
@@ -67,15 +95,22 @@ export default class Game {
         }
 
         this.flappy.update(flapping)
-        this.spikes.forEach(s => {
-            if (s.hits(this.flappy)) this.flappy.die()
-        })
-        return this.flappy.death && performance.now() > this.flappy.death + 2000
+        
+        if (!this.flappy.death) {
+            this.coins.forEach(c => {
+                if (c.hits(this.flappy)) c.collect()
+            })
+            this.spikes.forEach(s => {
+                if (s.hits(this.flappy)) this.flappy.die()
+            })
+        }
+
+        const complete = this.flappy.death && performance.now() > this.flappy.death + DEATH_DELAY
+        return complete
     }
     score() {
-        return this.spikes.reduce((sum, spike) => {
-            if (this.flappy.x > spike.x) return sum + 100
-            return sum
+        return this.coins.reduce((sum, c) => {
+            return c.collected ? sum + COIN_POINTS : sum
         }, 0)
     }
 }
