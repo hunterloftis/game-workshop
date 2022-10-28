@@ -1,6 +1,7 @@
 import { CircleCircle } from '../../wee.mjs'
 import { Verlet } from '../../wee.mjs'
 import { State } from '../../wee.mjs';
+import { flappyGame } from './example.mjs';
 
 const MOMENTUM = 0.999
 const GRAVITY = 60 / 1000
@@ -27,29 +28,46 @@ class Flappy extends Collider {
         this.height = new Verlet(this.y)
         this.died = 0
     }
-    update(flapping, blocks, weightless=false) {
-        if (!this.died) this.x += SPEED
-        if (weightless) return
+    update(flapping, blocks, weightless) {
+        if (this.died) {
+            this.moveDead();
+        }
+        else {
+            this.moveAlive(flapping, blocks, weightless);
+        }
+
+        this.y = this.height.position()
+    }
+    moveAlive(flapping, blocks, weightless) {
+        if (weightless) {
+            this.flyRight()
+            return
+        }
 
         this.height.integrate(MOMENTUM)
-        this.height.force(GRAVITY)
-        this.height.constrain(0, MAX_Y)
-
-        if (flapping && !this.died) {
-            this.height.force(-FLAP)
-        }
-
-        if (this.height.position() >= MAX_Y && !this.died) {
+        flappyGame(flapping, this)   
+        if (this.height.position() >= MAX_Y) {
             this.died = performance.now()
         }
-        
+        this.height.constrain(0, MAX_Y)
         blocks.forEach(b => {
-            if (!this.died && this.collide(b)) {
+            if (this.collide(b)) {
                 this.died = performance.now()
             }
         })
-
-        this.y = this.height.position()
+    }
+    moveDead() {
+        this.height.integrate(MOMENTUM)
+        this.height.constrain(0, MAX_Y)
+    }
+    flapWings() {
+        this.height.force(-FLAP)
+    }
+    sinkDown() {
+        this.height.force(GRAVITY)
+    }
+    flyRight() {
+        this.x += SPEED
     }
 }
 
@@ -76,7 +94,7 @@ class Block extends Collider {
 }
 
 export class Level {
-    constructor(dist, density=0.1, blockChance=0.25, gridSize=150) {
+    constructor(dist, density=0.1, blockChance=0.2, gridSize=150) {
         this.dist = dist
         this.flappy = new Flappy(200, 540)
         this.coins = []
