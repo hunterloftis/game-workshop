@@ -45,6 +45,7 @@ class Flappy extends Collider {
         }
 
         this.height.integrate(MOMENTUM)
+        this.sinkDown();
         flappyGame(flapping, this)   
         if (this.height.position() >= MAX_Y) {
             this.died = performance.now()
@@ -58,6 +59,7 @@ class Flappy extends Collider {
     }
     moveDead() {
         this.height.integrate(MOMENTUM)
+        this.sinkDown();
         this.height.constrain(0, MAX_Y)
     }
     flapWings() {
@@ -94,7 +96,7 @@ class Block extends Collider {
 }
 
 export class Level {
-    constructor(dist, density=0.1, blockChance=0.2, gridSize=150) {
+    constructor(dist, density=0.1, blockChance=0.25, gridSize=150) {
         this.dist = dist
         this.flappy = new Flappy(200, 540)
         this.coins = []
